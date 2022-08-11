@@ -1,0 +1,26 @@
+{
+    "erp": {
+        "drivername": "postgresql",
+        "host": "localhost",
+        "port": "5432",
+        "username": "postgres",
+        "password": "5924",
+        "database": "erp_system"
+    },
+    "fl": {
+        "drivername": "postgresql",
+        "host": "localhost",
+        "port": "5432",
+        "username": "postgres",
+        "password": "5924",
+        "database": "first_lab"
+    },
+    "wl": {
+        "drivername": "postgresql",
+        "host": "localhost",
+        "port": "5432",
+        "username": "postgres",
+        "password": "5924",
+        "database": "workload"
+    }
+}

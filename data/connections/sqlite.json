@@ -1,0 +1,10 @@
+{
+    "test": {
+        "drivername": "sqlite",
+        "database": "E:\\ImpFiles\\pyqt_apps\\new\\practica\\database-manager\\db.sqlite3"
+    },
+    "ultra": {
+        "drivername": "sqlite",
+        "database": "E:\\ImpFiles\\pyqt_apps\\new\\practica\\database-manager\\fefef.db"
+    }
+}
