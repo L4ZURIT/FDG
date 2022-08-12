@@ -35,6 +35,12 @@ class ConnectionStore():
             cl.extend([Connection(key, typ[:-5], val ) for key, val in JSONm.read(f'data/connections/{typ}').items() ] )
         return cl
 
+    def get_connection_names(self, driver:str) -> list:
+        try:
+            return JSONm.read(f'data/connections/{driver}.json').keys()
+        except FileNotFoundError:
+            return []
+            
     # Обновляет или добавляет соединение
     def add_or_update_connection(self, new_con:Connection):
         old_dict = JSONm.read(f'data/connections/{new_con.type}.json')
@@ -55,7 +61,7 @@ def main():
         "database": "E:\\ImpFiles\\pyqt_apps\\new\\practica\\database-manager\\fefef.db"
     })
 
-    cs.add_or_update_connection(nc)
+    print(cs.get_connection_names("wdwd"))
 
     pass
 

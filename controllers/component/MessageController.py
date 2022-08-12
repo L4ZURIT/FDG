@@ -2,15 +2,31 @@ from PyQt5.uic import *
 from PyQt5.QtWidgets import *
 import sys
 
-from controllers.gui_controllers.ConnectionGUI import ConnectionGUI
+
+
+class Messenger():
+
+    @staticmethod
+    def ask(what:str) -> bool:
+
+        ans = QMessageBox.question(None, "FDG", what)
+        
+
+
+        return True
+
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        loadUi('views/main_window.ui',self)
-        
-        
-        
+
+
+        Messenger.ask("ЧТО?")
+
+
+        #loadUi('untitled.ui',self)
+        #self.setCentralWidget(QPushButton('BEGIN'))
 
 
 

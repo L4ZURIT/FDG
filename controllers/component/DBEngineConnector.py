@@ -20,9 +20,7 @@ class Connector():
         self.db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=self.engine))
-        self.insp = inspect(self.engine)
-        
-        
+        self.insp = inspect(self.engine)  
         self.table_names = self.insp.get_table_names
 
         pass

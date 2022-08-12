@@ -15,9 +15,14 @@ class JSONm():
             
 
 
+class configm():
+    @staticmethod
+    def availibale_db_drivers() -> list:
+        return JSONm.read("data/cfg.json")['drivers']
+
 def main():
 
-    print(JSONm.read("data/connections/sqlite.json"))
+    print(configm.availibale_db_drivers())
 
     pass
 
