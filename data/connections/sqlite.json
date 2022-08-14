@@ -6,5 +6,9 @@
     "ultra": {
         "drivername": "sqlite",
         "database": "E:\\ImpFiles\\pyqt_apps\\new\\practica\\database-manager\\fefef.db"
+    },
+    "gogog": {
+        "drivername": "sqlite",
+        "database": "E:/ImpFiles/pyqt_apps/new/practica/database-manager/fefef.db"
     }
 }

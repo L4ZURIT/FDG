@@ -9,6 +9,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from instruments.Serializer import configm as cfg
 from stores.ConnectionStore import Connection, ConnectionStore
 from component.DBEngineConnector import Connector
+from component.MessageController import Messenger as msg
 
 
 # Новые виджеты в стек добавлять в соотвествии с порядком добавления в конфигурации
@@ -91,16 +92,41 @@ class ConnectionGUI(QWidget):
             self.lbl_sqlite_status.setText("Не найден")
             self.pb_ok.setEnabled(False)
 
+    # Конфигурации
+    def get_config(self, driver:str) -> dict:
+        if driver == "sqlite":
+            return self.get_config_sqlite()
+        elif driver == "postgres":
+            return self.get_config_postgres()
+        # elif driver == "YourDriverName":
+            # return get_config_your_config()
 
+    def get_config_sqlite(self) -> dict:
+        return {
+            "drivername":"sqlite", 
+            "database":self.le_sqlite_path.text().strip()
+        } 
 
-    # Этап на котором ты остановился (почитай гит сначала)
+    def get_config_postgres(self) -> dict:
+        ...
+
+    # def get_config_your_config():
+        #...
+
+   
     def connect(self):
-        if self.le_connection_name.text().strip() in self.CS.get_connection_names(self.cb_driver_list.currentText()):
-            # message Такая запись уже существует
-            ...
-
+        con_name = self.le_connection_name.text().strip()
+        con_type = self.cb_driver_list.currentText()
+        if con_name in self.CS.get_connection_names(con_type):
+            if not msg.ask_y_n("Такое подключение уже существует вы хотите его перезаписать?"):
+                return
+        elif con_name == "":
+            msg.err("Сначала укажите имя")
+            return
+        self.CS.add_or_update_connection(Connection(con_name, con_type, self.get_config(con_type)))     
+        msg.say("Подключение сохранено")
         
-
+     # Этап на котором ты остановился (почитай гит сначала)
 
 
 if __name__ == '__main__':
