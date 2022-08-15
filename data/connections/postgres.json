@@ -22,5 +22,13 @@
         "username": "postgres",
         "password": "5924",
         "database": "workload"
+    },
+    "deafeefw": {
+        "drivername": "postgresql",
+        "host": "localhost",
+        "port": "5432",
+        "username": "postgres",
+        "password": "5924",
+        "database": "erp_system"
     }
 }

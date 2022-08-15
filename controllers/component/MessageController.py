@@ -32,8 +32,15 @@ class Messenger():
     def err(what:str):
         ms = QMessageBox.critical(None, "FDG", what)
 
+    @staticmethod
     def say(what:str):
         ms = QMessageBox.information(None, "FDG", what)
+
+    @staticmethod
+    def find_file(what:str, filetypes:list) -> str:
+        file , check = QFileDialog.getOpenFileName(None, what,"", ";;".join(filetypes))
+        if check:
+            return file
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):

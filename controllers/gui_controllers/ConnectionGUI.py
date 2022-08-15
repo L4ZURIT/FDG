@@ -53,6 +53,12 @@ class ConnectionGUI(QWidget):
         # для sqlite
         self.pb_sqlite_find.clicked.connect(self.sqlite_find_path)
         self.le_sqlite_path.textChanged.connect(self.sqlite_check_path)
+        # для postgres
+        self.le_postgres_host.textChanged.connect(self.postgres_check)
+        self.le_postgres_port.textChanged.connect(self.postgres_check)
+        self.le_postgres_un.textChanged.connect(self.postgres_check)
+        self.le_postgres_pwd.textChanged.connect(self.postgres_check)
+        self.le_postgres_database.textChanged.connect(self.postgres_check)
         # Переопределение событий
         
         
@@ -79,6 +85,7 @@ class ConnectionGUI(QWidget):
 
     # Находит бд по указаному пути 
     def sqlite_find_path(self):
+        # использовать Messenger
         file , check = QFileDialog.getOpenFileName(None, "Выбрать базу sqlite","", "Базы данных (*.db);;Базы данных (*.sqlite3)")
         if check:
             self.le_sqlite_path.setText(file)
@@ -91,6 +98,18 @@ class ConnectionGUI(QWidget):
         else:
             self.lbl_sqlite_status.setText("Не найден")
             self.pb_ok.setEnabled(False)
+
+    def postgres_check(self):
+        if any(
+            (self.le_postgres_host.text().strip() == "",
+            self.le_postgres_port.text().strip() == "",
+            self.le_postgres_un.text().strip() == "",
+            self.le_postgres_pwd.text().strip() == "",
+            self.le_postgres_database.text().strip() == "")
+        ):
+            self.pb_ok.setEnabled(False)
+        else:
+            self.pb_ok.setEnabled(True)
 
     # Конфигурации
     def get_config(self, driver:str) -> dict:
@@ -108,7 +127,14 @@ class ConnectionGUI(QWidget):
         } 
 
     def get_config_postgres(self) -> dict:
-        ...
+        return {
+            "drivername": "postgresql",
+            "host": self.le_postgres_host.text(),
+            "port": self.le_postgres_port.text(),
+            "username": self.le_postgres_un.text(),
+            "password": self.le_postgres_pwd.text(),
+            "database": self.le_postgres_database.text()
+    }
 
     # def get_config_your_config():
         #...
@@ -123,10 +149,15 @@ class ConnectionGUI(QWidget):
         elif con_name == "":
             msg.err("Сначала укажите имя")
             return
-        self.CS.add_or_update_connection(Connection(con_name, con_type, self.get_config(con_type)))     
+        try:
+            self.C = Connection(con_name, con_type, self.get_config(con_type))
+            self.Cr = Connector(self.C.config)
+        except Exception as ex:
+            msg.err(str(ex))
+            return
+        self.CS.add_or_update_connection(self.C)     
         msg.say("Подключение сохранено")
         
-     # Этап на котором ты остановился (почитай гит сначала)
 
 
 if __name__ == '__main__':
