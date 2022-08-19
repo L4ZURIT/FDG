@@ -15,6 +15,9 @@ from component.MessageController import Messenger as msg
 # Новые виджеты в стек добавлять в соотвествии с порядком добавления в конфигурации
 
 class ConnectionGUI(QWidget):
+    """
+        Описание
+        """
     def __init__(self, parent=None):
         super().__init__(parent)
         # Опасный момент
@@ -72,12 +75,18 @@ class ConnectionGUI(QWidget):
     
     # Устанавливает виджет обработки подключения в зависимости от выбранного дравера
     def driver_selected(self):
+        """
+        Описание
+        """
         self.clear_fields()
         self.stackedWidget.setCurrentIndex(self.cb_driver_list.currentIndex())
 
 
     #Очищает вводимые пользователем данные
     def clear_fields(self):
+        """
+        Описание
+        """
         for wdg in self.stackedWidget.children():
             for le in wdg.children():
                 if type(le) is QLineEdit: # or и добавить свои поля
@@ -85,6 +94,9 @@ class ConnectionGUI(QWidget):
 
     # Находит бд по указаному пути 
     def sqlite_find_path(self):
+        """
+        Описание
+        """
         # использовать Messenger
         file , check = QFileDialog.getOpenFileName(None, "Выбрать базу sqlite","", "Базы данных (*.db);;Базы данных (*.sqlite3)")
         if check:
@@ -92,6 +104,9 @@ class ConnectionGUI(QWidget):
         
     # Проверяет наличие файла
     def sqlite_check_path(self):
+        """
+        Описание
+        """
         if os.path.exists(self.le_sqlite_path.text()):
             self.lbl_sqlite_status.setText("Есть")
             self.pb_ok.setEnabled(True)
@@ -100,6 +115,9 @@ class ConnectionGUI(QWidget):
             self.pb_ok.setEnabled(False)
 
     def postgres_check(self):
+        """
+        Описание
+        """
         if any(
             (self.le_postgres_host.text().strip() == "",
             self.le_postgres_port.text().strip() == "",
@@ -113,6 +131,9 @@ class ConnectionGUI(QWidget):
 
     # Конфигурации
     def get_config(self, driver:str) -> dict:
+        """
+        Описание
+        """
         if driver == "sqlite":
             return self.get_config_sqlite()
         elif driver == "postgres":
@@ -121,12 +142,18 @@ class ConnectionGUI(QWidget):
             # return get_config_your_config()
 
     def get_config_sqlite(self) -> dict:
+        """
+        Описание
+        """
         return {
             "drivername":"sqlite", 
             "database":self.le_sqlite_path.text().strip()
         } 
 
     def get_config_postgres(self) -> dict:
+        """
+        Описание
+        """
         return {
             "drivername": "postgresql",
             "host": self.le_postgres_host.text(),
@@ -137,10 +164,16 @@ class ConnectionGUI(QWidget):
     }
 
     # def get_config_your_config():
+        """
+        Описание
+        """
         #...
 
    
     def connect(self):
+        """
+        Описание
+        """
         con_name = self.le_connection_name.text().strip()
         con_type = self.cb_driver_list.currentText()
         if con_name in self.CS.get_connection_names(con_type):

@@ -49,7 +49,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="pb_data_insert_row">
            <property name="minimumSize">
             <size>
              <width>28</width>
@@ -68,7 +68,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_3">
+          <widget class="QPushButton" name="pb_data_delete_row">
            <property name="minimumSize">
             <size>
              <width>28</width>
@@ -107,14 +107,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="pb_data_cancel">
            <property name="text">
             <string>Отмена</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="pb_data_save">
            <property name="text">
             <string>Сохранить</string>
            </property>
