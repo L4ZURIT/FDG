@@ -20,6 +20,7 @@ class EditorGUI(QWidget):
         Описание
         """
     
+    # Буферы хранения запросов
     delete_rows = {}
     update_rows = {}
     insert_rows = {}
@@ -44,7 +45,7 @@ class EditorGUI(QWidget):
 
         #Подключение сигналов
         self.lw_tables.itemDoubleClicked.connect(self.set_current_table)
-        self.tblw_content.itemChanged.connect(self.update_row_cortage)
+        self.tblw_content.itemTextChanged.connect(self.update_row_cortage)
         self.pb_data_delete_row.clicked.connect(self.delete_row_cortage)
         self.pb_data_save.clicked.connect(self.commit_changes)
         self.pb_data_cancel.clicked.connect(self.decline_changes)
@@ -60,9 +61,9 @@ class EditorGUI(QWidget):
         # Устанавливаем текущую таблицу для работы с объектом Connector
         self.con.set_current_table(item.text())
         # Передаем данные таблицы в виджет на время отключая обработку изменений содержимого 
-        self.tblw_content.itemChanged.disconnect(self.update_row_cortage)
+        self.tblw_content.itemTextChanged.disconnect(self.update_row_cortage)
         self.tblw_content.set_content(self.con.get_table())
-        self.tblw_content.itemChanged.connect(self.update_row_cortage)
+        self.tblw_content.itemTextChanged.connect(self.update_row_cortage)
         # Передаем данные о свойствах в виджет
         ...
         # Передаем данные о комбинациях в виджет
@@ -88,32 +89,48 @@ class EditorGUI(QWidget):
         for row in self.tblw_content.selectedItems():
             val = self.tblw_content.deleted_row(row.row())
             self.delete_rows[row.row()] = self.con.delete_cortage(val)
+            if row.row() in list(self.update_rows.values()):
+                del self.update_rows[row.row()]
         
+
+
+
+
+    # Подтверждение всех совершенных изменений 
 
     def commit_changes(self):
         """
         Описание 
         """
+
+        print(self.update_rows, self.delete_rows)
+
+        # Специальный буфер ответных сообщений от sqlalhemy, возвращаемых после запроса
         statuses = []
         statuses.append([self.con.request(self.update_rows[key]) for key in  self.update_rows.keys()])
-        statuses.append([self.con.request(self.delete_rows[key]) for key in  self.update_rows.keys()])
+        statuses.append([self.con.request(self.delete_rows[key]) for key in  self.delete_rows.keys()])
 
+        # Если это непустые сообщения выводим их на экран в сообщении (обычно это сообщения об ошибках)
         for status in statuses:
-            if status != "no_data":
-                msg.err(str(status))
+            if type(status) != str and status != "no_data":
+                for s in status:
+                    if s != "no_data":
+                        msg.err("Ошибка запроса:\n"+str(status))
         
-        # очищаем словари
-        self.update_rows = {}
-        self.delete_rows = {}
+        self.decline_changes()
 
-        # перезагружаем таблицу с новыми данными
-        self.set_current_table(QListWidgetItem(self.con.currentTable.name))
+
+    # Оклонение всех совершенных изменений 
 
     def decline_changes(self):
         """
         Описание 
         """
-        # перезагружаем таблицу с старыми данными
+        # очищаем словари
+        self.update_rows = {}
+        self.delete_rows = {}
+
+        # перезагружаем таблицу с новыми данными
         self.set_current_table(QListWidgetItem(self.con.currentTable.name))
 
 

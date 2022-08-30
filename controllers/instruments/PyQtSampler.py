@@ -12,16 +12,28 @@ class EditableTable(QTableWidget):
 
     content = {}
 
+    itemTextChanged = pyqtSignal(QTableWidgetItem)
+
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
+        self.itemChanged.connect(self.textChangedListener)
+
+    
+    def textChangedListener(self, item:QTableWidgetItem):
+        """
+        Специальный фильтр сигналов реагирующий только на изменение текста. Так как в коробке QTableWidget поставляет только сигнал itemChanged реагирующий на разнообразное множество изменений ячеек, необходимо было сделать такой фильтр.
+        """
+        if self.content:
+            if item.text() != str(self.content[list(self.content.keys())[item.column()]][item.row()]):
+                self.itemTextChanged.emit(item)
+
 
     # Заполняет таблицу полученными данными
     def set_content(self, content:dict):
-        
-        self.content = content
         """
         Описание
         """
+        self.content = content
         # Установка разметки поля
         self.setColumnCount(len(content))
         self.setRowCount(len(content[list(content.keys())[0]]))
@@ -31,6 +43,8 @@ class EditableTable(QTableWidget):
         for c_i, col in enumerate(content.keys()):
             for r_i, val in enumerate(content[col]):
                 self.setItem(r_i, c_i, QTableWidgetItem(str(val)))
+
+        
         
     
 
