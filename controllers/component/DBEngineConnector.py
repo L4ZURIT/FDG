@@ -1,5 +1,5 @@
 import pandas as pd
-from sqlalchemy import create_engine, Column, Table, MetaData, ForeignKey, select, inspect, and_
+from sqlalchemy import create_engine, Column, Table, MetaData, ForeignKey, select, inspect, and_, text
 from sqlalchemy.engine import Engine, reflection, Inspector
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker, Query, scoped_session
@@ -82,6 +82,13 @@ class Connector():
                     self.currentTable.c[i.name] == vals[i.name]
                     for i in self.currentTable.primary_key.columns
                     ))
+
+    def insert_cortage(self, vals:dict):
+        """
+        Описание
+        """
+        return self.currentTable.insert().values(tuple(vals[col.name] 
+                    for col in self.currentTable.columns))
 
 
 

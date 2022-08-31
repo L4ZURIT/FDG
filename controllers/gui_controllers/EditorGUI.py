@@ -1,4 +1,4 @@
-from pprint import pprint
+from hmac import new
 from PyQt5.uic import *
 from PyQt5.QtWidgets import *
 import sys
@@ -17,8 +17,8 @@ from instruments.PyQtSampler import EditableTable
 
 class EditorGUI(QWidget):
     """
-        Описание
-        """
+        Контроллер для редактирования содержимого баз данных
+    """
     
     # Буферы хранения запросов
     delete_rows = {}
@@ -45,8 +45,9 @@ class EditorGUI(QWidget):
 
         #Подключение сигналов
         self.lw_tables.itemDoubleClicked.connect(self.set_current_table)
-        self.tblw_content.itemTextChanged.connect(self.update_row_cortage)
+        self.tblw_content.itemChanged.connect(self.update_row_cortage)
         self.pb_data_delete_row.clicked.connect(self.delete_row_cortage)
+        self.pb_data_insert_row.clicked.connect(self.insert_row_cortage)
         self.pb_data_save.clicked.connect(self.commit_changes)
         self.pb_data_cancel.clicked.connect(self.decline_changes)
         #Настройка интерфейса
@@ -56,14 +57,15 @@ class EditorGUI(QWidget):
         
     def set_current_table(self, item:QListWidgetItem):
         """
-        Описание
+        Устанавливает содержимое таблицы для редактирования в виджет
         """
+        self.clear_buffers()
         # Устанавливаем текущую таблицу для работы с объектом Connector
         self.con.set_current_table(item.text())
         # Передаем данные таблицы в виджет на время отключая обработку изменений содержимого 
-        self.tblw_content.itemTextChanged.disconnect(self.update_row_cortage)
+        self.tblw_content.itemChanged.disconnect(self.update_row_cortage)
         self.tblw_content.set_content(self.con.get_table())
-        self.tblw_content.itemTextChanged.connect(self.update_row_cortage)
+        self.tblw_content.itemChanged.connect(self.update_row_cortage)
         # Передаем данные о свойствах в виджет
         ...
         # Передаем данные о комбинациях в виджет
@@ -71,26 +73,54 @@ class EditorGUI(QWidget):
 
     def update_row_cortage(self, item:QTableWidgetItem):
         """
-        Описание 
+        Помечает в какой строке данные изменились и наполняет соответствующий буфер запросов
         """
+        self.tblw_content.last_item = item
+        
         if item.row() not in self.delete_rows.keys():
             # получаем новые данные кортежа
             vals = [i.text() for i in [self.tblw_content.item(item.row(), col) for col in range(self.tblw_content.columnCount())]]
             new_val = { column:value for column, value in zip(self.tblw_content.content.keys(), vals)}
-            # получаем старые данные кортежа и маркируем изменения в таблице
-            old_val = self.tblw_content.updated_row(item.row())
+            # но сначала проверим не обновляем ли мы новую строку
+            if item.row() in self.insert_rows.keys():
+                self.insert_row_cortage(item.row(), new_val)
+                return
+            # временный разрыв 
+            self.tblw_content.itemChanged.disconnect(self.update_row_cortage)
+            old_val = self.tblw_content.updated_row(item.row())  # получаем старые данные кортежа и маркируем изменения в таблице
+            self.tblw_content.itemChanged.connect(self.update_row_cortage)
             # сохраняем обновление в список изменений
             self.update_rows[item.row()] = self.con.update_cortage(old_val, new_val)
 
+        
+
     def delete_row_cortage(self):
         """
-        Описание 
+        Помечает в какой строке данные были удалены и наполняет соответствующий буфер запросов
         """
+
+        self.tblw_content.last_item = QTableWidgetItem()
+
         for row in self.tblw_content.selectedItems():
+            # временный разрыв 
+            self.tblw_content.itemChanged.disconnect(self.update_row_cortage)
             val = self.tblw_content.deleted_row(row.row())
-            self.delete_rows[row.row()] = self.con.delete_cortage(val)
-            if row.row() in list(self.update_rows.values()):
+            # временный разрыв 
+            self.tblw_content.itemChanged.connect(self.update_row_cortage)
+            self.delete_rows[row.row()] = self.con.delete_cortage(val) # получаем запрос из модуля
+            if row.row() in list(self.update_rows.keys()):
                 del self.update_rows[row.row()]
+
+
+    def insert_row_cortage(self, index:int = None, new_vals:dict = None):
+        if new_vals:
+            self.insert_rows[index] = self.con.insert_cortage(new_vals)
+            return
+        self.tblw_content.itemChanged.disconnect(self.update_row_cortage)
+        index, values = self.tblw_content.inserted_row()
+        self.tblw_content.itemChanged.connect(self.update_row_cortage)
+        self.insert_rows[index] = self.con.insert_cortage(values)
+        print(self.insert_rows)
         
 
 
@@ -100,15 +130,13 @@ class EditorGUI(QWidget):
 
     def commit_changes(self):
         """
-        Описание 
+        Отправляет запросы из буферов в модуль, показывая на экране их результаты 
         """
-
-        print(self.update_rows, self.delete_rows)
-
         # Специальный буфер ответных сообщений от sqlalhemy, возвращаемых после запроса
         statuses = []
         statuses.append([self.con.request(self.update_rows[key]) for key in  self.update_rows.keys()])
         statuses.append([self.con.request(self.delete_rows[key]) for key in  self.delete_rows.keys()])
+        statuses.append([self.con.request(self.insert_rows[key]) for key in  self.insert_rows.keys()])
 
         # Если это непустые сообщения выводим их на экран в сообщении (обычно это сообщения об ошибках)
         for status in statuses:
@@ -116,6 +144,8 @@ class EditorGUI(QWidget):
                 for s in status:
                     if s != "no_data":
                         msg.err("Ошибка запроса:\n"+str(status))
+
+        print(self.delete_rows, self.update_rows, self.insert_rows, sep="\n")
         
         self.decline_changes()
 
@@ -124,14 +154,19 @@ class EditorGUI(QWidget):
 
     def decline_changes(self):
         """
-        Описание 
+        Возвращает таблицу в исзодное состояние 
         """
         # очищаем словари
-        self.update_rows = {}
-        self.delete_rows = {}
+        self.clear_buffers()
 
         # перезагружаем таблицу с новыми данными
         self.set_current_table(QListWidgetItem(self.con.currentTable.name))
+
+
+    def clear_buffers(self):
+        self.update_rows = {}
+        self.delete_rows = {}
+        self.insert_rows = {}
 
 
 if __name__ == '__main__':

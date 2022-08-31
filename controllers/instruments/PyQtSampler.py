@@ -1,5 +1,3 @@
-from pprint import pprint
-from turtle import update
 from PyQt5.uic import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -7,31 +5,35 @@ from PyQt5.QtGui import QColor
 import sys
 
 
+"""
+Хотел здесь написать декоратор для кратковремменного отключения слотов при изменении цвета ячеек, но что-то пошло не так. Точнее не могу сообразить как правильно его инициализировать, при создании класса EditableTable
+"""
+
+# def tumbler(func):
+#     def wrapper(*args, **kwargs):
+
+#         func(*args, **kwargs)
+
+#     return wrapper
+
+
 
 class EditableTable(QTableWidget):
+    """
+    Виджет для редактирования наполнения подключенной таблицы.
+    """
 
+    # Содержимое таблицы до внесения изменений
     content = {}
-
-    itemTextChanged = pyqtSignal(QTableWidgetItem)
-
+    
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
-        self.itemChanged.connect(self.textChangedListener)
-
-    
-    def textChangedListener(self, item:QTableWidgetItem):
-        """
-        Специальный фильтр сигналов реагирующий только на изменение текста. Так как в коробке QTableWidget поставляет только сигнал itemChanged реагирующий на разнообразное множество изменений ячеек, необходимо было сделать такой фильтр.
-        """
-        if self.content:
-            if item.text() != str(self.content[list(self.content.keys())[item.column()]][item.row()]):
-                self.itemTextChanged.emit(item)
-
+        
 
     # Заполняет таблицу полученными данными
     def set_content(self, content:dict):
         """
-        Описание
+        Заполняет таблицу данными из словаря, устанавливает в качестве имен столбцов, ключи словаря
         """
         self.content = content
         # Установка разметки поля
@@ -50,7 +52,7 @@ class EditableTable(QTableWidget):
 
     def updated_row(self, row_index:int) -> dict:
         """
-        Описание 
+        Маркирует указаную строку как "измененную" ОРАНЖЕВЫМ цветом и возвращает старые значения кортежа 
         """
         for col in range(self.columnCount()):
             self.item(row_index, col).setBackground(QColor.fromRgb(255,165,0))
@@ -59,11 +61,21 @@ class EditableTable(QTableWidget):
 
     def deleted_row(self, row_index) -> dict:
         """
-        Описание 
+        Маркирует указаную строку как "удаленную" КРАСНЫМ цветом и возвращает старые значения кортежа 
         """
         for col in range(self.columnCount()):
             self.item(row_index, col).setBackground(QColor.fromRgb(255,0,0))
         return {column:value for column, value in zip(list(self.content.keys()), [self.content[k][row_index] for k in self.content.keys()])}
+
+    def inserted_row(self) -> tuple:
+        # реализовать заполнение значениями по умолчанию
+        last_row = self.rowCount()
+        values = {column:value for column, value in zip(list(self.content.keys()), list(self.content.keys()))}
+        self.setRowCount(self.rowCount()+1)
+        for col in range(self.columnCount()):
+            self.setItem(last_row, col, QTableWidgetItem(values[list(values.keys())[col]]))
+            self.item(last_row, col).setBackground(QColor.fromRgb(0,128,0))
+        return last_row, values
 
 
 if __name__ == '__main__':
